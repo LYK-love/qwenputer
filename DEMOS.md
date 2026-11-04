@@ -20,6 +20,8 @@ uv tool run --from huggingface_hub hf download divagr1925/Qwen3.5-4B-Qwenputer \
 ```
 
 On the development server `qwenputer-rv` is a symlink into `/data/lyk/qwenputer/models/`.
+The virtual environment and uv cache also live under `/data/lyk/qwenputer/` to avoid NFS I/O.
+For subsequent installs on this server use `uv sync --extra hf --cache-dir /data/lyk/qwenputer/uv-cache`.
 Keep checkpoints, caches and local results outside version control.
 
 ## Reference firmware demos
@@ -53,6 +55,12 @@ The qemu comparison uses upstream's stored `qemu.json`; it does not invoke a new
 uv run python -m chipformer.rv.chat qwenputer-rv \
   --firmware tests/data/rv/calc-bridge.elf \
   --ask 'Use calc: what is 123456789 * 987654321?' --check
+
+uv run python -m chipformer.rv.chat qwenputer-rv \
+  --ask 'Use calc: what is gcd(1234567890,9876543210)?' --check
+
+uv run python -m chipformer.rv.chat qwenputer-rv \
+  --ask 'Use calc: what is (2**64 - 1) // 12345? Use integer floor division.' --check
 ```
 
 For a smaller, standalone compiled CPU checkpoint (without Qwen's language layers):
@@ -62,5 +70,24 @@ uv run python -m chipformer.rv.tinycheck --device cuda \
   --progs signext,call,memcpy,c-crc32p,c-strops
 ```
 
-Model inference results will be recorded after execution; the reference results above
-must not be interpreted as full-model inference results.
+Full-model results on RTX 3090 (generation time excludes model loading and replay):
+
+| Prompt | Answer | Generation | CPU trace tokens | Replay |
+| --- | --- | --- | --- | --- |
+| `123456789 * 987654321` | `121932631112635269` | 12.1 s | 2,430 | Passed, 0 wrong predictions |
+| `gcd(1234567890,9876543210)` | `90` | 12.9 s | 3,351 | Passed, 0 wrong predictions |
+| `(2**64 - 1) // 12345` | `1494268454735484` | 17.8 s | 5,476 | Passed, 0 wrong predictions |
+
+All three runs had zero head mismatches and no lock error. The `calc` responses came from the
+compiled CPU path; the reference machines checked the resulting trace.
+
+The standalone CPU also passed `signext` (44 tokens), `call` (474), `memcpy` (159), and
+compiled C `c-crc32p` (6,282, output `crc32=414fa339`) and `c-strops` (1,073). Its generated sequences equaled
+the reference token for token, and circuit residuals equaled the IR evaluator.
+
+Optional `flash-linear-attention` and `causal-conv1d` kernels were not installed. Transformers
+used its PyTorch fallback implementations, so these are correctness demos, not optimized benchmarks.
+The upstream tokenizer also emitted a regex warning; no tokenizer files were changed.
+
+Local raw logs: `local-results/2026-11-04/` (ignored by Git).
+Reference firmware test suite in the installed environment: **130 passed, 4 skipped**.
