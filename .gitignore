@@ -10,3 +10,8 @@ __pycache__/
 /games/sources/
 /games/shots/
 /dist/
+/experimental/riscv/qwenputer-rv
+/experimental/riscv/dist/
+/local-results/
+.env
+.env.*

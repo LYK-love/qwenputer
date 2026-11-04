@@ -1,3 +1,16 @@
+# Qwenputer — independent copy
+
+This is LYK-love's independent repository, cloned from
+[divagr18/qwenputer](https://github.com/divagr18/qwenputer) by **Divyansh Agrawal**.
+It is not a GitHub fork. Upstream Git history, the original MIT license and
+[CITATION.cff](CITATION.cff) are retained. The original project and research belong
+to their respective authors; local setup and demo notes are in [DEMOS.md](DEMOS.md).
+
+Source article: [Qwenputer](https://divagr.com/blog/qwenputer).
+Imported upstream commit: `bec1a0c9654ac8151b6f36ed0154a19c53141384`.
+
+---
+
 <p align="center">
   <img src="docs/qwenputer-banner.svg" alt="Qwenputer: a computer, compiled into the weights of a language model." width="100%">
 </p>
