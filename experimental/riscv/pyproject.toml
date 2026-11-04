@@ -29,5 +29,14 @@ build-backend = "hatchling.build"
 [tool.ruff]
 line-length = 100
 
+# Use CUDA 12 wheels on the RTX 3090 server (driver 535).
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
